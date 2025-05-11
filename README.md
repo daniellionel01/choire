@@ -60,6 +60,7 @@ This package was heavily inspired by https://github.com/QuiiBz/sherif.
 
 - [ ] support javascript target
 - [ ] support custom hex api key
+- [ ] cache latest dependency version for 24h
 - [ ] additional configuration
   - [ ] log level
   - [ ] include exclude patterns
