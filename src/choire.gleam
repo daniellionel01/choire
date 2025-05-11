@@ -1,5 +1,5 @@
-import choire/cli/colored
-import choire/files
+import choire/internal/cli/colored
+import choire/internal/files
 import filepath
 import gleam/bool
 import gleam/dict
