@@ -39,8 +39,7 @@ to reset and continue fetching the package information.
 ## Development
 
 ```sh
-gleam run   # Run the project
-gleam test  # Run the tests
+./bin/test.sh # Run choire with the sample repositories
 ```
 
 ## License
