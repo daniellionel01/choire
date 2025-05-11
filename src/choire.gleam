@@ -102,9 +102,15 @@ pub fn main() -> Nil {
       let gleam_dev_deps = case dict.get(toml, "dev-dependencies") {
         Error(_) -> dict.new()
         Ok(tom.Table(e)) -> e
+        Ok(tom.InlineTable(e)) -> e
         Ok(_) -> dict.new()
       }
-      let assert Ok(tom.Table(gleam_deps)) = dict.get(toml, "dependencies")
+      let gleam_deps = case dict.get(toml, "dependencies") {
+        Error(_) -> dict.new()
+        Ok(tom.Table(e)) -> e
+        Ok(tom.InlineTable(e)) -> e
+        Ok(_) -> dict.new()
+      }
 
       // since the manifest.toml also contains the transitive deps
       // (as in all deps of our deps) we only want to include
