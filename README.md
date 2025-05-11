@@ -37,3 +37,6 @@ to reset and continue fetching the package information.
 gleam run   # Run the project
 gleam test  # Run the tests
 ```
+
+## License
+[Apache License, Version 2.0](./LICENSE)
