@@ -5,8 +5,6 @@
 
 ## Introduction
 
-**FYI: works for both javascript and erlang target!**
-
 Choire works in a gleam monorepo or singular project. It does two things for you:
 - Check for outdated dependencies
 - Check for different version of the same dependency across different gleam apps
@@ -44,3 +42,11 @@ to reset and continue fetching the package information.
 
 ## License
 [Apache License, Version 2.0](./LICENSE)
+
+## TODO
+
+- [ ] support javascript target
+- [ ] additional configuration
+  - [ ] log level
+  - [ ] include exclude patterns
+  - [ ] toggle dev deps

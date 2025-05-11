@@ -5,7 +5,7 @@ import gleam/list
 import gleam/string
 import simplifile
 
-/// Finds all `gleam.toml` directories and lists the full path files
+/// Finds all `manifest.toml` directories and lists the full path files
 /// https://github.com/giacomocavalieri/squirrel/blob/main/src/squirrel.gleam
 ///
 pub fn walk(from: String) -> Dict(String, List(String)) {
