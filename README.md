@@ -17,7 +17,17 @@ $ gleam add choire@1
 
 ```sh
 $ gleam run -m choire
+$ HEXAPI_KEY=... gleam run -m choire # you can do more hex api requests
 ```
+
+## Hex API and Ratelimits
+
+At the time of this writing, you can make 100 requests per minute to the HEX api as an
+unauthenticated user and 500 per minute as an authenticated user
+(https://hexpm.docs.apiary.io/#introduction/rate-limiting).
+
+Since the limit resets after 60 seconds, this library will simply hold and wait for the limit
+to reset and continue fetching the package information.
 
 ## Development
 
