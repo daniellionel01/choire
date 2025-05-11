@@ -5,14 +5,14 @@
 
 ## Introduction
 
+**FYI: works for both javascript and erlang target!**
+
 Choire works in a gleam monorepo or singular project. It does two things for you:
 - Check for outdated dependencies
 - Check for different version of the same dependency across different gleam apps
 
 Importantly, this package does not perform any modifications or updates for you.
 This design is intentional as to not mess up your project in any way.
-
-**Works for both javascript and erlang target!**
 
 ## Usage
 
