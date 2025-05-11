@@ -1,5 +1,5 @@
 name = "choire"
-version = "1.0.0"
+version = "1.0.1"
 
 description = "🎶 Choire - gleam dependency tooling"
 licences = ["Apache-2.0"]
