@@ -19,8 +19,7 @@ pub fn main() -> Nil {
     })
   echo tomls
 
-  // todo as throw warning if package has no manifest.toml
-  // todo errors: hex ratelimiting
+  // todo handle: hex ratelimiting
 
   Nil
 }
