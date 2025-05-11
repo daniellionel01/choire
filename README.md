@@ -25,6 +25,22 @@ $ gleam run -m choire
 $ HEXAPI_KEY=... gleam run -m choire
 ```
 
+## Example
+
+```sh
+$ gleam run -m choire
+> found 3 packages
+
+> found a mismatch for: lustre
+v5.0.3 (./sample/sample_b/gleam.toml)
+v4.6.4 (./sample/sample_a/gleam.toml)
+
+fetching latest stable dependency versions...
+
+> found 1 upgradable dependencies in ./sample/sample_a/gleam.toml
+lustre v4.6.4 -> v5.0.3
+```
+
 ## Hex API and Ratelimits
 
 At the time of this writing, you can make 100 requests per minute to the HEX api as an

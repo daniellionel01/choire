@@ -148,25 +148,35 @@ pub fn main() -> Nil {
       dict.insert(acc, dep_name, [entry, ..ex])
     })
 
-  inverted_dep_map
-  |> dict.to_list()
-  |> list.each(fn(dep) {
-    let #(dep_name, usage) = dep
+  let res_mismatches =
+    inverted_dep_map
+    |> dict.to_list()
+    |> list.fold(0, fn(acc, dep) {
+      let #(dep_name, usage) = dep
 
-    let versions =
-      usage
-      |> list.map(fn(u) { u.1 })
-      |> list.unique()
+      let versions =
+        usage
+        |> list.map(fn(u) { u.1 })
+        |> list.unique()
 
-    // only 1 version is used across packages -> we're fine
-    use <- bool.guard(when: list.length(versions) <= 1, return: Nil)
+      // only 1 version is used across packages -> we're fine
+      use <- bool.guard(when: list.length(versions) <= 1, return: acc)
 
-    io.println("> found a mismatch for: " <> colored.red(dep_name))
-    list.each(usage, fn(u) {
-      io.println("  v" <> u.1 <> " (" <> { u.0 }.gleam_toml_path <> ")")
+      io.println("> found a mismatch for: " <> colored.red(dep_name))
+      list.each(usage, fn(u) {
+        io.println("  v" <> u.1 <> " (" <> { u.0 }.gleam_toml_path <> ")")
+      })
+      io.println("")
+
+      acc + 1
     })
-    io.println("")
-  })
+  case res_mismatches {
+    0 -> {
+      io.println(colored.green("no mismatched dependencies found"))
+      io.println("")
+    }
+    _ -> Nil
+  }
 
   // we're now going to look for outdated deps by checking for the latest
   // version via the hex api
@@ -222,47 +232,53 @@ pub fn main() -> Nil {
     |> list.filter_map(function.identity)
     |> dict.from_list
 
-  dep_map
-  |> dict.to_list
-  |> list.each(fn(entry) {
-    let outdated =
-      list.filter_map(entry.1, fn(dep) {
-        case dict.get(dep_latest_versions, dep.name) {
-          Error(_) -> Error(Nil)
-          Ok(latest) ->
-            case dep.version != latest {
-              False -> Error(Nil)
-              True -> Ok(#(dep, latest))
-            }
-        }
-      })
+  let res_outdated =
+    dep_map
+    |> dict.to_list
+    |> list.fold(0, fn(acc, entry) {
+      let outdated =
+        list.filter_map(entry.1, fn(dep) {
+          case dict.get(dep_latest_versions, dep.name) {
+            Error(_) -> Error(Nil)
+            Ok(latest) ->
+              case dep.version != latest {
+                False -> Error(Nil)
+                True -> Ok(#(dep, latest))
+              }
+          }
+        })
 
-    // no need to print anything if there are no outdated deps
-    let has_outdated = case outdated {
-      [] -> False
-      _ -> True
-    }
-    use <- bool.guard(when: !has_outdated, return: Nil)
+      // no need to print anything if there are no outdated deps
+      let has_outdated = case outdated {
+        [] -> False
+        _ -> True
+      }
+      use <- bool.guard(when: !has_outdated, return: acc)
 
-    io.println(
-      "> found "
-      <> int.to_string(list.length(outdated))
-      <> " upgradable dependencies in "
-      <> { entry.0 }.gleam_toml_path,
-    )
-    list.each(outdated, fn(dated) {
-      let #(dep, latest) = dated
       io.println(
-        "  "
-        <> colored.red(dep.name)
-        <> " v"
-        <> dep.version
-        <> " -> v"
-        <> latest,
+        "> found "
+        <> int.to_string(list.length(outdated))
+        <> " upgradable dependencies in "
+        <> { entry.0 }.gleam_toml_path,
       )
+      list.each(outdated, fn(dated) {
+        let #(dep, latest) = dated
+        io.println(
+          "  "
+          <> colored.red(dep.name)
+          <> " v"
+          <> dep.version
+          <> " -> v"
+          <> latest,
+        )
+      })
+      io.println("")
+      acc + 1
     })
-    io.println("")
-  })
+  case res_outdated {
+    0 -> io.println(colored.green("no outdated dependencies found"))
+    _ -> Nil
+  }
   io.println("")
 
   Nil
