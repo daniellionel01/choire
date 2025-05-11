@@ -12,7 +12,7 @@ Choire works in a gleam monorepo or singular project. It does two things for you
 Importantly, this package does not perform any modifications or updates for you.
 This design is intentional as to not mess up your project in any way.
 
-Works for both javascript and erlang target!
+**Works for both javascript and erlang target!**
 
 ## Usage
 
