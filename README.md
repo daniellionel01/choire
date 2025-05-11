@@ -58,6 +58,10 @@ to reset and continue fetching the package information.
 ./bin/test.sh # Run choire with the sample repositories
 ```
 
+## Acknowledgements
+
+This package was heavily inspired by https://github.com/QuiiBz/sherif.
+
 ## License
 [Apache License, Version 2.0](./LICENSE)
 
