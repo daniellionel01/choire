@@ -3,9 +3,15 @@ import choire/files
 import filepath
 import gleam/bool
 import gleam/dict
+import gleam/dynamic/decode
+import gleam/erlang/process
 import gleam/function
+import gleam/http/request
+import gleam/http/response
+import gleam/httpc
 import gleam/int
 import gleam/io
+import gleam/json
 import gleam/list
 import gleam/result
 import simplifile
@@ -159,14 +165,105 @@ pub fn main() -> Nil {
     list.each(usage, fn(u) {
       io.println("  v" <> u.1 <> " (" <> { u.0 }.gleam_toml_path <> ")")
     })
+    io.println("")
   })
+
+  // we're now going to look for outdated deps by checking for the latest
+  // version via the hex api
+
+  // to prevent fetching a dependency multiple times, we'll fetch every latest
+  // version beforehand so we can reuse it in our outdated check
+
+  io.println(colored.yellow("fetching latest stable dependency versions..."))
   io.println("")
 
-  // todo: identify version mismatches
+  let dep_latest_versions =
+    inverted_dep_map
+    |> dict.keys()
+    |> list.map(fn(dep_name) {
+      let assert Ok(req) =
+        request.to("https://www.hex.pm/api/packages/" <> dep_name)
 
-  // todo: create unique set of all dependencies
+      use resp <- result.try(httpc.send(req) |> result.replace_error(Nil))
 
-  // todo: hex ratelimiting
+      use rl_remaining_header <- result.try(response.get_header(
+        resp,
+        "x-ratelimit-remaining",
+      ))
+      let rl_remaining = case int.parse(rl_remaining_header) {
+        Error(_) -> 0
+        Ok(e) -> e
+      }
+
+      case rl_remaining {
+        0 -> {
+          io.println(colored.yellow(
+            "got ratelimited by hex api. waiting 60 seconds...",
+          ))
+          process.sleep(60_000)
+        }
+        _ -> Nil
+      }
+
+      let hex_decoder = {
+        use latest_version <- decode.field(
+          "latest_stable_version",
+          decode.string,
+        )
+        decode.success(latest_version)
+      }
+      use version <- result.try(
+        json.parse(resp.body, hex_decoder)
+        |> result.replace_error(Nil),
+      )
+
+      Ok(#(dep_name, version))
+    })
+    |> list.filter_map(function.identity)
+    |> dict.from_list
+
+  dep_map
+  |> dict.to_list
+  |> list.each(fn(entry) {
+    let outdated =
+      list.filter_map(entry.1, fn(dep) {
+        case dict.get(dep_latest_versions, dep.name) {
+          Error(_) -> Error(Nil)
+          Ok(latest) ->
+            case dep.version != latest {
+              False -> Error(Nil)
+              True -> Ok(#(dep, latest))
+            }
+        }
+      })
+
+    // no need to print anything if there are no outdated deps
+    let has_outdated = case outdated {
+      [] -> False
+      _ -> True
+    }
+    use <- bool.guard(when: !has_outdated, return: Nil)
+
+    io.println(
+      "> found "
+      <> int.to_string(list.length(outdated))
+      <> " upgradable dependencies in "
+      <> { entry.0 }.gleam_toml_path,
+    )
+    list.each(outdated, fn(dated) {
+      let #(dep, latest) = dated
+      io.println(
+        "  "
+        <> colored.red(dep.name)
+        <> " v"
+        <> dep.version
+        <> " -> v"
+        <> latest,
+      )
+    })
+    io.println("")
+  })
+  io.println("")
 
   Nil
 }
