@@ -19,8 +19,8 @@ pub fn main() -> Nil {
     })
   echo tomls
 
-  Nil
-  // todo as walk everything except build directories
   // todo as throw warning if package has no manifest.toml
   // todo errors: hex ratelimiting
+
+  Nil
 }

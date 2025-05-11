@@ -17,7 +17,9 @@ $ gleam add choire@1
 
 ```sh
 $ gleam run -m choire
-$ HEXAPI_KEY=... gleam run -m choire # you can do more hex api requests
+
+# if you are hitting hex api ratelimits
+$ HEXAPI_KEY=... gleam run -m choire
 ```
 
 ## Hex API and Ratelimits
