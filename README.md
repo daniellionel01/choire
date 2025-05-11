@@ -20,9 +20,6 @@ $ gleam add choire@1
 
 ```sh
 $ gleam run -m choire
-
-# if you are hitting hex api ratelimits
-$ HEXAPI_KEY=... gleam run -m choire
 ```
 
 ## Example
@@ -50,13 +47,7 @@ unauthenticated user and 500 per minute as an authenticated user
 (https://hexpm.docs.apiary.io/#introduction/rate-limiting).
 
 Since the limit resets after 60 seconds, this library will simply hold and wait for the limit
-to reset and continue fetching the package information.
-
-## Development
-
-```sh
-./bin/test.sh # Run choire with the sample repositories
-```
+to reset and then continue fetching the package information.
 
 ## Acknowledgements
 
@@ -65,9 +56,10 @@ This package was heavily inspired by https://github.com/QuiiBz/sherif.
 ## License
 [Apache License, Version 2.0](./LICENSE)
 
-## TODO
+## Future Work
 
 - [ ] support javascript target
+- [ ] support custom hex api key
 - [ ] additional configuration
   - [ ] log level
   - [ ] include exclude patterns
