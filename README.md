@@ -9,6 +9,9 @@ Choire works in a gleam monorepo or singular project. It does two things for you
 - Check for outdated dependencies
 - Check for different version of the same dependency across different gleam apps
 
+Importantly, this package does not modify anything for you. This design is intentional as to
+not mess up your project in any way.
+
 ## Usage
 
 ```sh
