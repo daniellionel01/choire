@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.3 - 2025-05-14
+
+- Added ability to provide path as the first argument of the cli to run in different root directory
+  For example:
+  ```sh
+  $ gleam run -m choire .. # runs in parent directory
+  ```
+
 ## v1.0.2 - 2025-05-11
 
 Bumped version to get around invalid caching

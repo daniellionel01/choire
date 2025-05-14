@@ -20,7 +20,8 @@ $ gleam add choire@1
 ```
 
 ```sh
-$ gleam run -m choire
+$ gleam run -m choire # runs in current directory
+$ gleam run -m choire .. # runs in parent directory
 ```
 
 ## Example
@@ -61,7 +62,6 @@ This package was heavily inspired by https://github.com/QuiiBz/sherif.
 
 - [ ] support javascript target
 - [ ] support custom hex api key
-- [ ] allow for custom path through cli args
 - [ ] cache latest dependency version for 24h
 - [ ] additional configuration
   - [ ] log level

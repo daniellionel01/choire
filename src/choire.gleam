@@ -1,3 +1,4 @@
+import argv
 import choire/internal/cli/colored
 import choire/internal/files
 import filepath
@@ -17,12 +18,36 @@ import gleam/result
 import simplifile
 import tom
 
+const usage = "Usage:
+  gleam run -m choire help
+  gleam run -m choire
+  gleam run -m choire [path]
+"
+
 pub fn main() -> Nil {
+  case argv.load().arguments {
+    [] -> {
+      run(".")
+    }
+    ["help"] -> {
+      io.println(usage)
+    }
+    [path] -> {
+      run(path)
+    }
+    _ -> {
+      io.println(usage)
+    }
+  }
+  Nil
+}
+
+pub fn run(path: String) -> Nil {
   // we walk from the current directory to look for all directories
   // that contain a gleam.toml file
   // (we skip dirs like 'build' or '.git')
   let gleam_tomls =
-    files.walk(".")
+    files.walk(path)
     |> dict.to_list()
     |> list.filter(fn(dic) {
       // filter out dirs with no gleam.toml
