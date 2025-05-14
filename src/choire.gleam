@@ -138,8 +138,7 @@ pub fn main() -> Nil {
   // for this we'll create an inverted dict of our dep map
   // where we have the dep name as the key and the packages with
   // version that use it as the value
-  // let inverted_dep_map: InvertedDependencyMap =
-  let inverted_dep_map =
+  let inverted_dep_map: InvertedDependencyMap =
     dep_map
     |> dict.to_list()
     |> list.map(fn(map) {
