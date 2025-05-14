@@ -62,7 +62,7 @@ pub fn main() -> Nil {
 
   // we create a dict that maps every package we found (as in a directory
   // that has a manifest.toml) with all of its dependencies and versions
-  let dep_map: DependencyMap =
+  let dep_map: DepMap =
     packages
     |> list.map(fn(package) {
       let Package(toml_path, manifest_path) = package
@@ -89,13 +89,13 @@ pub fn main() -> Nil {
 
       // we parse all of the versions for the deps in the manifest.toml
       let assert Ok(tom.Array(tables)) = dict.get(manifest, "packages")
-      let manifest_deps: List(Dependency) =
+      let manifest_deps: List(Dep) =
         tables
         |> list.map(fn(table) {
           let assert tom.InlineTable(table) = table
           let assert Ok(tom.String(name)) = dict.get(table, "name")
           let assert Ok(tom.String(version)) = dict.get(table, "version")
-          Dependency(name, version)
+          Dep(DepName(name), DepVersion(version))
         })
 
       // we parse all of the deps in the gleam.toml
@@ -118,8 +118,8 @@ pub fn main() -> Nil {
       let deps =
         manifest_deps
         |> list.filter(fn(dep) {
-          dict.has_key(gleam_dev_deps, dep.name)
-          || dict.has_key(gleam_deps, dep.name)
+          let name = dep_name_to_string(dep.name)
+          dict.has_key(gleam_dev_deps, name) || dict.has_key(gleam_deps, name)
         })
 
       Ok(#(package, deps))
@@ -138,22 +138,22 @@ pub fn main() -> Nil {
   // for this we'll create an inverted dict of our dep map
   // where we have the dep name as the key and the packages with
   // version that use it as the value
-  let inverted_dep_map: InvertedDependencyMap =
+  let inverted_dep_map: InvDepMap =
     dep_map
     |> dict.to_list()
     |> list.map(fn(map) {
       let #(pck, deps) = map
-      list.map(deps, fn(dep) { #(dep.name, pck, dep.version) })
+      list.map(deps, fn(dep) { #(dep, pck) })
     })
     |> list.flatten()
     |> list.fold(dict.new(), fn(acc, cur) {
-      let #(dep_name, pck, dep_version) = cur
-      let ex = case dict.get(acc, dep_name) {
+      let #(dep, pck) = cur
+      let ex = case dict.get(acc, dep.name) {
         Error(_) -> []
         Ok(v) -> v
       }
-      let entry = #(pck, dep_version)
-      dict.insert(acc, dep_name, [entry, ..ex])
+      let entry = #(pck, dep.version)
+      dict.insert(acc, dep.name, [entry, ..ex])
     })
 
   let res_mismatches =
@@ -170,9 +170,11 @@ pub fn main() -> Nil {
       // only 1 version is used across packages -> we're fine
       use <- bool.guard(when: list.length(versions) <= 1, return: acc)
 
-      io.println("> found a mismatch for: " <> colored.red(dep_name))
+      let name = dep_name_to_string(dep_name)
+      io.println("> found a mismatch for: " <> colored.red(name))
       list.each(usage, fn(u) {
-        io.println("  v" <> u.1 <> " (" <> { u.0 }.gleam_toml_path <> ")")
+        let v = dep_version_to_string(u.1)
+        io.println("  v" <> v <> " (" <> { u.0 }.gleam_toml_path <> ")")
       })
       io.println("")
 
@@ -199,8 +201,9 @@ pub fn main() -> Nil {
     inverted_dep_map
     |> dict.keys()
     |> list.map(fn(dep_name) {
+      let name = dep_name_to_string(dep_name)
       let assert Ok(req) =
-        request.to("https://www.hex.pm/api/packages/" <> dep_name)
+        request.to("https://www.hex.pm/api/packages/" <> name)
 
       use resp <- result.try(httpc.send(req) |> result.replace_error(Nil))
 
@@ -248,11 +251,13 @@ pub fn main() -> Nil {
         list.filter_map(entry.1, fn(dep) {
           case dict.get(dep_latest_versions, dep.name) {
             Error(_) -> Error(Nil)
-            Ok(latest) ->
-              case dep.version != latest {
+            Ok(latest) -> {
+              let v = dep_version_to_string(dep.version)
+              case v != latest {
                 False -> Error(Nil)
                 True -> Ok(#(dep, latest))
               }
+            }
           }
         })
 
@@ -271,14 +276,9 @@ pub fn main() -> Nil {
       )
       list.each(outdated, fn(dated) {
         let #(dep, latest) = dated
-        io.println(
-          "  "
-          <> colored.red(dep.name)
-          <> " v"
-          <> dep.version
-          <> " -> v"
-          <> latest,
-        )
+        let name = dep_name_to_string(dep.name)
+        let v = dep_version_to_string(dep.version)
+        io.println("  " <> colored.red(name) <> " v" <> v <> " -> v" <> latest)
       })
       io.println("")
       acc + 1
@@ -292,35 +292,43 @@ pub fn main() -> Nil {
   Nil
 }
 
+pub fn dep_name_to_string(name: DepName) {
+  let DepName(name) = name
+  name
+}
+
+pub fn dep_version_to_string(version: DepVersion) {
+  let DepVersion(version) = version
+  version
+}
+
 pub type Error {
   FileError(simplifile.FileError)
   ParseError(tom.ParseError)
 }
 
-pub type DependencyVersion =
-  String
-
-pub type DependencyName =
-  String
-
 pub type Package {
   Package(gleam_toml_path: String, manifest_toml_path: String)
 }
 
-pub type Dependency {
-  Dependency(name: DependencyName, version: DependencyVersion)
+pub type DepName {
+  DepName(String)
 }
 
-pub type DependencyMap =
-  dict.Dict(Package, List(Dependency))
+pub type DepVersion {
+  DepVersion(String)
+}
 
-pub type InvertedDependencyMap =
-  dict.Dict(DependencyName, List(#(Package, DependencyVersion)))
+pub type Dep {
+  Dep(name: DepName, version: DepVersion)
+}
+
+pub type DepMap =
+  dict.Dict(Package, List(Dep))
+
+pub type InvDepMap =
+  dict.Dict(DepName, List(#(Package, DepVersion)))
 
 pub type VersionMismatch {
-  VersionMismatch(
-    package_a: String,
-    package_b: String,
-    dep_name: DependencyName,
-  )
+  VersionMismatch(package_a: String, package_b: String, dep_name: DepName)
 }
