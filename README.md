@@ -20,7 +20,7 @@ $ gleam add choire@1
 ```
 
 ```sh
-$ gleam run -m choire # runs in current directory
+$ gleam run -m choire    # runs in current directory
 $ gleam run -m choire .. # runs in parent directory
 ```
 
