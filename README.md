@@ -55,9 +55,6 @@ to reset and then continue fetching the package information.
 
 This package was heavily inspired by https://github.com/QuiiBz/sherif.
 
-## License
-[Apache License, Version 2.0](./LICENSE)
-
 ## Future Work
 
 - [ ] attempt to fetch changelog of dependencies
