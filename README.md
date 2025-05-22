@@ -58,6 +58,7 @@ This package was heavily inspired by https://github.com/QuiiBz/sherif.
 ## Future Work
 
 - [ ] attempt to fetch changelog of dependencies
+- [ ] support `--json` flag
 - [ ] support javascript target
 - [ ] support custom hex api key
 - [ ] cache latest dependency version for 24h
