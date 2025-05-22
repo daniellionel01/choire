@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-05-22
+
+- Bump `gleam_json` version
+
 ## [1.0.3] - 2025-05-14
 
 - Added ability to provide path as the first argument of the cli to run in different root directory
