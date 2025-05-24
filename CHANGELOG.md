@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2025-05-24
+
+- Relaxed version constraints to allow upgrading.
+
 ## [1.0.4] - 2025-05-22
 
-- Bump `gleam_json` version
+- Bumped `gleam_json` version.
 
 ## [1.0.3] - 2025-05-14
 
@@ -21,11 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.2] - 2025-05-11
 
-Bumped version to get around invalid caching
+- Bumped version to get around invalid caching.
 
 ## [1.0.1] - 2025-05-11
 
-- Fixed a bug where empty dev dependencies would cause a panic
+- Fixed a bug where empty dev dependencies would cause a panic.
 
 ## [1.0.0] - 2025-05-11
 
