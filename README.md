@@ -16,7 +16,7 @@ This design is intentional as to not mess up your project in any way.
 ## Usage
 
 ```sh
-$ gleam add choire@1
+$ gleam add choire@1 --dev
 ```
 
 ```sh
