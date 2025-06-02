@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2025-06-02
+
+- Bumped `tom` version.
+
 ## [1.0.5] - 2025-05-24
 
 - Relaxed version constraints to allow upgrading.
