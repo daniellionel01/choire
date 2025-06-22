@@ -21,7 +21,7 @@ import tom
 const usage = "Usage:
   gleam run -m choire help
   gleam run -m choire
-  gleam run -m choire [path]
+  gleam run -m choire <path>
 "
 
 pub fn main() -> Nil {

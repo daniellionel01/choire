@@ -53,15 +53,18 @@ to reset and then continue fetching the package information.
 
 ## Acknowledgements
 
-This package was heavily inspired by https://github.com/QuiiBz/sherif.
+- This package was heavily inspired by https://github.com/QuiiBz/sherif.
 
 ## Future Work
 
+- [ ] spinner during step
+- [ ] "can i upgrade?" - attempts to find out if traverse dependency will conflict
 - [ ] attempt to fetch changelog of dependencies
 - [ ] support `--json` flag
 - [ ] support javascript target
 - [ ] support custom hex api key
 - [ ] cache latest dependency version for 24h
+  - [ ] `--force` to ignore cache
 - [ ] additional configuration
   - [ ] log level
   - [ ] include exclude patterns
