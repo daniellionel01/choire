@@ -1,5 +1,5 @@
 name = "choire"
-version = "1.0.6"
+version = "1.0.7"
 description = "🎶 Choire - gleam dependency tooling"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "daniellionel01", repo = "choire" }
