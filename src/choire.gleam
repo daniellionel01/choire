@@ -268,26 +268,34 @@ pub fn run(path: String) -> Nil {
     |> list.filter_map(function.identity)
     |> dict.from_list
 
+  let outdated =
+    dep_map
+    |> dict.to_list
+    |> list.map(fn(entry) {
+      list.filter_map(entry.1, fn(dep) {
+        case dict.get(dep_latest_versions, dep.name) {
+          Error(_) -> Error(Nil)
+          Ok(latest) -> {
+            let v = dep_version_to_string(dep.version)
+            case v != latest {
+              False -> Error(Nil)
+              True -> Ok(#(entry.0, dep, latest))
+            }
+          }
+        }
+      })
+    })
+    |> list.unique()
+    |> list.flatten()
+
   let res_outdated =
     dep_map
     |> dict.to_list
     |> list.fold(0, fn(acc, entry) {
-      let outdated =
-        list.filter_map(entry.1, fn(dep) {
-          case dict.get(dep_latest_versions, dep.name) {
-            Error(_) -> Error(Nil)
-            Ok(latest) -> {
-              let v = dep_version_to_string(dep.version)
-              case v != latest {
-                False -> Error(Nil)
-                True -> Ok(#(dep, latest))
-              }
-            }
-          }
-        })
+      let outdated_deps = list.filter(outdated, fn(tup) { entry.0 == tup.0 })
 
       // no need to print anything if there are no outdated deps
-      let has_outdated = case outdated {
+      let has_outdated = case outdated_deps {
         [] -> False
         _ -> True
       }
@@ -295,12 +303,12 @@ pub fn run(path: String) -> Nil {
 
       io.println(
         "> found "
-        <> int.to_string(list.length(outdated))
+        <> int.to_string(list.length(outdated_deps))
         <> " upgradable dependencies in "
         <> { entry.0 }.gleam_toml_path,
       )
-      list.each(outdated, fn(dated) {
-        let #(dep, latest) = dated
+      list.each(outdated_deps, fn(dated) {
+        let #(_, dep, latest) = dated
         let name = dep_name_to_string(dep.name)
         let v = dep_version_to_string(dep.version)
         io.println("  " <> colored.red(name) <> " v" <> v <> " -> v" <> latest)
@@ -313,6 +321,27 @@ pub fn run(path: String) -> Nil {
     _ -> Nil
   }
   io.println("")
+
+  // we are now going to check wether potential new versions would violate any
+  // version constraints of (traverse) dependencies:
+  // 1. we look at what dependencies can be upgraded
+  // 2. we parse the requirements of the packages of those dependencies
+  // 3. we check if our upgradable package appears in any of the other package dependencies
+  // 4. if not, we're clear. if it does, we have to check if the new version would violate the version constraints
+
+  // let outdated_by_pkg =
+  //   outdated
+  //   |> list.group(fn(entry) { entry.0 })
+  //   |> dict.to_list()
+
+  // list.each(outdated_by_pkg, fn(group) {
+  //   list.each(group.1, fn(entry) {
+  //     let #(pkg, dep, latest) = entry
+
+  //     let manifest = pkg.manifest_toml_path
+  //   })
+  // })
+  // io.println("")
 
   Nil
 }
