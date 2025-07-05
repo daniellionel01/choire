@@ -1,4 +1,5 @@
 import choire/internal/project
+import gleam/list
 
 pub fn gleam_project_parse_test() {
   let gleam_project = project.parse_gleam_project(".")
@@ -39,4 +40,16 @@ pub fn gleam_project_parse_test() {
         project.ManifestPackage("tom", "2.0.0"),
       ]),
     ))
+}
+
+pub fn exact_dep_version_test() {
+  let assert Ok(project) = project.parse_gleam_project(".")
+  let deps = project.toml.deps
+
+  let assert Ok(argv) = list.find(deps, fn(dep) { dep.name == "argv" })
+  assert project.exact_dep_version(project, argv) == Ok("1.0.2")
+
+  let assert Ok(simplifile) =
+    list.find(deps, fn(dep) { dep.name == "simplifile" })
+  assert project.exact_dep_version(project, simplifile) == Ok("2.2.1")
 }

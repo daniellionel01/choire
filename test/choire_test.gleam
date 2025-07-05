@@ -6,31 +6,6 @@ import gleam/string
 import gleeunit
 import simplifile
 
-fn create_gleam_app(parent_dir: String, name: String) {
-  let assert Ok(_) =
-    cmd.exec(run: "gleam", with: ["new", name, "--name", "app"], in: parent_dir)
-  Nil
-}
-
-fn install_gleam_dep(dir: String, dependency: String) {
-  let assert Ok(_) = cmd.exec(run: "gleam", with: ["add", dependency], in: dir)
-  Nil
-}
-
-fn with_tmp_dir(callback: fn(String) -> Nil) {
-  let random =
-    crypto.strong_random_bytes(8)
-    |> bit_array.base16_encode
-    |> string.lowercase
-
-  let dir = "/tmp/choire_test_" <> random
-  let assert Ok(_) = simplifile.create_directory_all(dir)
-
-  let _ = callback(dir)
-
-  simplifile.delete_all([dir])
-}
-
 pub fn main() -> Nil {
   gleeunit.main()
 }
@@ -57,4 +32,31 @@ pub fn no_mismatches_test() {
 
   install_gleam_dep(pkg_a, "lustre")
   install_gleam_dep(pkg_b, "lustre")
+}
+
+// === UTILITIES ===
+
+fn create_gleam_app(parent_dir: String, name: String) {
+  let assert Ok(_) =
+    cmd.exec(run: "gleam", with: ["new", name, "--name", "app"], in: parent_dir)
+  Nil
+}
+
+fn install_gleam_dep(dir: String, dependency: String) {
+  let assert Ok(_) = cmd.exec(run: "gleam", with: ["add", dependency], in: dir)
+  Nil
+}
+
+fn with_tmp_dir(callback: fn(String) -> Nil) {
+  let random =
+    crypto.strong_random_bytes(8)
+    |> bit_array.base16_encode
+    |> string.lowercase
+
+  let dir = "/tmp/choire_test_" <> random
+  let assert Ok(_) = simplifile.create_directory_all(dir)
+
+  let _ = callback(dir)
+
+  simplifile.delete_all([dir])
 }

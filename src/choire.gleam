@@ -26,18 +26,10 @@ const usage = "Usage:
 
 pub fn main() -> Nil {
   case argv.load().arguments {
-    [] -> {
-      run(".")
-    }
-    ["help"] -> {
-      io.println(usage)
-    }
-    [path] -> {
-      run(path)
-    }
-    _ -> {
-      io.println(usage)
-    }
+    [] -> run(".")
+    ["help"] -> io.println(usage)
+    [path] -> run(path)
+    _ -> io.println(usage)
   }
   Nil
 }
