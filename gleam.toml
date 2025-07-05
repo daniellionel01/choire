@@ -1,8 +1,16 @@
 name = "choire"
 version = "1.0.7"
+
 description = "🎶 Choire - gleam dependency tooling"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "daniellionel01", repo = "choire" }
+
+target = "erlang"
+
+[documentation]
+pages = [
+  { title = "Changelog", path = "changelog.html", source = "./CHANGELOG.md" },
+]
 
 [dependencies]
 argv = ">= 1.0.2 and < 2.0.0"
