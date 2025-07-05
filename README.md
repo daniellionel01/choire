@@ -58,8 +58,6 @@ to reset and then continue fetching the package information.
 
 ## Future Work
 
-- [ ] spinner during step
-- [ ] additional configuration
-  - [ ] log level
-  - [ ] include exclude patterns
-  - [ ] toggle dev deps
+Ideas and actionable ideas are collected and organised here: https://github.com/daniellionel01/choire/issues
+
+Contributions are welcomed!
