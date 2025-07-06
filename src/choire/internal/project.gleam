@@ -55,7 +55,7 @@ pub fn parse_gleam_project(
     }
     |> dict.to_list()
     |> list.map(fn(dep) {
-      let name = dep.0
+      let name = DependencyName(dep.0)
       let assert tom.String(constraint) = dep.1
       Dependency(name:, constraint:)
     })
@@ -68,7 +68,7 @@ pub fn parse_gleam_project(
     }
     |> dict.to_list()
     |> list.map(fn(dep) {
-      let name = dep.0
+      let name = DependencyName(dep.0)
       let assert tom.String(constraint) = dep.1
       Dependency(name:, constraint:)
     })
@@ -88,12 +88,14 @@ pub fn parse_gleam_project(
       let assert tom.InlineTable(table) = table
       let assert Ok(tom.String(name)) = dict.get(table, "name")
       let assert Ok(tom.String(version)) = dict.get(table, "version")
+      let name = DependencyName(name)
+      let version = DependencyVersion(version)
       ManifestPackage(name:, version:)
     })
 
   let manifest = Manifest(manifest_path, manifest_pkgs)
 
-  let project = GleamProject(toml:, manifest:)
+  let project = GleamProject(root_path:, toml:, manifest:)
 
   Ok(project)
 }
@@ -101,7 +103,7 @@ pub fn parse_gleam_project(
 pub fn exact_dep_version(
   project: GleamProject,
   dep: Dependency,
-) -> Result(String, Nil) {
+) -> Result(DependencyVersion, Nil) {
   let package =
     list.find(project.manifest.packages, fn(pkg) { pkg.name == dep.name })
   case package {
@@ -110,8 +112,79 @@ pub fn exact_dep_version(
   }
 }
 
+pub fn conflicting_version_dependencies() {
+  todo
+}
+
+pub fn mismatched_dependencies(
+  lookup: DependencyVersionLookup,
+) -> List(DependencyName) {
+  lookup
+  |> dict.to_list()
+  |> list.filter_map(fn(entry) {
+    let #(name, projects_with_version) = entry
+
+    let versions =
+      list.map(projects_with_version, fn(pv) { pv.1 })
+      |> list.unique()
+
+    case versions {
+      [_] -> Error(Nil)
+      _ -> Ok(name)
+    }
+  })
+}
+
+pub fn dependency_version_lookup(
+  projects: List(GleamProject),
+) -> DependencyVersionLookup {
+  let dependency_names =
+    projects
+    |> list.flat_map(fn(project) {
+      list.append(project.toml.deps, project.toml.dev_deps)
+    })
+    |> list.map(fn(dep) { dep.name })
+    |> list.unique()
+
+  dependency_names
+  |> list.map(fn(name) {
+    let projects_with_version =
+      list.filter_map(projects, fn(project) {
+        let deps = list.append(project.toml.deps, project.toml.dev_deps)
+        let dep = list.find(deps, fn(dep) { dep.name == name })
+        case dep {
+          Error(_) -> Error(Nil)
+          Ok(dep) -> {
+            let assert Ok(version) = exact_dep_version(project, dep)
+            Ok(#(project, version))
+          }
+        }
+      })
+
+    #(name, projects_with_version)
+  })
+  |> list.filter(fn(tup) {
+    case tup.1 {
+      [] -> False
+      _ -> True
+    }
+  })
+  |> dict.from_list()
+}
+
+pub type DependencyVersionLookup =
+  dict.Dict(DependencyName, List(#(GleamProject, DependencyVersion)))
+
+pub type DependencyName {
+  DependencyName(value: String)
+}
+
+pub type DependencyVersion {
+  DependencyVersion(value: String)
+}
+
 pub type GleamProject {
-  GleamProject(toml: GleamToml, manifest: Manifest)
+  GleamProject(root_path: String, toml: GleamToml, manifest: Manifest)
 }
 
 pub type GleamToml {
@@ -119,11 +192,11 @@ pub type GleamToml {
 }
 
 pub type Dependency {
-  Dependency(name: String, constraint: String)
+  Dependency(name: DependencyName, constraint: String)
 }
 
 pub type ManifestPackage {
-  ManifestPackage(name: String, version: String)
+  ManifestPackage(name: DependencyName, version: DependencyVersion)
 }
 
 pub type Manifest {
