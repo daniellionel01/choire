@@ -1,18 +1,17 @@
 import argv
 import choire/internal/cli/colored
 import choire/internal/files
+import choire/internal/hex
+import choire/internal/project.{
+  type DependencyName, type DependencyVersion, type ManifestPackage,
+  DependencyName, DependencyVersion, ManifestPackage,
+}
 import filepath
 import gleam/bool
 import gleam/dict
-import gleam/dynamic/decode
-import gleam/erlang/process
 import gleam/function
-import gleam/http/request
-import gleam/http/response
-import gleam/httpc
 import gleam/int
 import gleam/io
-import gleam/json
 import gleam/list
 import gleam/result
 import simplifile
@@ -26,18 +25,10 @@ const usage = "Usage:
 
 pub fn main() -> Nil {
   case argv.load().arguments {
-    [] -> {
-      run(".")
-    }
-    ["help"] -> {
-      io.println(usage)
-    }
-    [path] -> {
-      run(path)
-    }
-    _ -> {
-      io.println(usage)
-    }
+    [] -> run(".")
+    ["help"] -> io.println(usage)
+    [path] -> run(path)
+    _ -> io.println(usage)
   }
   Nil
 }
@@ -114,13 +105,13 @@ pub fn run(path: String) -> Nil {
 
       // we parse all of the versions for the deps in the manifest.toml
       let assert Ok(tom.Array(tables)) = dict.get(manifest, "packages")
-      let manifest_deps: List(Dep) =
+      let manifest_deps: List(ManifestPackage) =
         tables
         |> list.map(fn(table) {
           let assert tom.InlineTable(table) = table
           let assert Ok(tom.String(name)) = dict.get(table, "name")
           let assert Ok(tom.String(version)) = dict.get(table, "version")
-          Dep(DepName(name), DepVersion(version))
+          ManifestPackage(DependencyName(name), DependencyVersion(version))
         })
 
       // we parse all of the deps in the gleam.toml
@@ -143,7 +134,7 @@ pub fn run(path: String) -> Nil {
       let deps =
         manifest_deps
         |> list.filter(fn(dep) {
-          let name = dep_name_to_string(dep.name)
+          let name = dep.name.value
           dict.has_key(gleam_dev_deps, name) || dict.has_key(gleam_deps, name)
         })
 
@@ -195,10 +186,10 @@ pub fn run(path: String) -> Nil {
       // only 1 version is used across packages -> we're fine
       use <- bool.guard(when: list.length(versions) <= 1, return: acc)
 
-      let name = dep_name_to_string(dep_name)
+      let name = dep_name.value
       io.println("> found a mismatch for: " <> colored.red(name))
       list.each(usage, fn(u) {
-        let v = dep_version_to_string(u.1)
+        let v = { u.1 }.value
         io.println("  v" <> v <> " (" <> { u.0 }.gleam_toml_path <> ")")
       })
       io.println("")
@@ -226,68 +217,40 @@ pub fn run(path: String) -> Nil {
     inverted_dep_map
     |> dict.keys()
     |> list.map(fn(dep_name) {
-      let name = dep_name_to_string(dep_name)
-      let assert Ok(req) =
-        request.to("https://www.hex.pm/api/packages/" <> name)
-
-      use resp <- result.try(httpc.send(req) |> result.replace_error(Nil))
-
-      use rl_remaining_header <- result.try(response.get_header(
-        resp,
-        "x-ratelimit-remaining",
-      ))
-      let rl_remaining = case int.parse(rl_remaining_header) {
-        Error(_) -> 0
-        Ok(e) -> e
-      }
-
-      case rl_remaining {
-        0 -> {
-          io.println(colored.yellow(
-            "got ratelimited by hex api. waiting 60 seconds...",
-          ))
-          process.sleep(60_000)
-        }
-        _ -> Nil
-      }
-
-      let hex_decoder = {
-        use latest_version <- decode.field(
-          "latest_stable_version",
-          decode.string,
-        )
-        decode.success(latest_version)
-      }
-      use version <- result.try(
-        json.parse(resp.body, hex_decoder)
-        |> result.replace_error(Nil),
-      )
-
+      use version <- result.try(hex.fetch_version(dep_name))
       Ok(#(dep_name, version))
     })
     |> list.filter_map(function.identity)
     |> dict.from_list
 
+  let outdated =
+    dep_map
+    |> dict.to_list
+    |> list.map(fn(entry) {
+      list.filter_map(entry.1, fn(dep) {
+        case dict.get(dep_latest_versions, dep.name) {
+          Error(_) -> Error(Nil)
+          Ok(latest) -> {
+            let v = dep.version.value
+            case v != latest {
+              False -> Error(Nil)
+              True -> Ok(#(entry.0, dep, latest))
+            }
+          }
+        }
+      })
+    })
+    |> list.unique()
+    |> list.flatten()
+
   let res_outdated =
     dep_map
     |> dict.to_list
     |> list.fold(0, fn(acc, entry) {
-      let outdated =
-        list.filter_map(entry.1, fn(dep) {
-          case dict.get(dep_latest_versions, dep.name) {
-            Error(_) -> Error(Nil)
-            Ok(latest) -> {
-              let v = dep_version_to_string(dep.version)
-              case v != latest {
-                False -> Error(Nil)
-                True -> Ok(#(dep, latest))
-              }
-            }
-          }
-        })
+      let outdated_deps = list.filter(outdated, fn(tup) { entry.0 == tup.0 })
 
       // no need to print anything if there are no outdated deps
-      let has_outdated = case outdated {
+      let has_outdated = case outdated_deps {
         [] -> False
         _ -> True
       }
@@ -295,14 +258,14 @@ pub fn run(path: String) -> Nil {
 
       io.println(
         "> found "
-        <> int.to_string(list.length(outdated))
+        <> int.to_string(list.length(outdated_deps))
         <> " upgradable dependencies in "
         <> { entry.0 }.gleam_toml_path,
       )
-      list.each(outdated, fn(dated) {
-        let #(dep, latest) = dated
-        let name = dep_name_to_string(dep.name)
-        let v = dep_version_to_string(dep.version)
+      list.each(outdated_deps, fn(dated) {
+        let #(_, dep, latest) = dated
+        let name = dep.name.value
+        let v = dep.version.value
         io.println("  " <> colored.red(name) <> " v" <> v <> " -> v" <> latest)
       })
       io.println("")
@@ -314,17 +277,28 @@ pub fn run(path: String) -> Nil {
   }
   io.println("")
 
+  // we are now going to check wether potential new versions would violate any
+  // version constraints of (traverse) dependencies:
+  // 1. we look at what dependencies can be upgraded
+  // 2. we parse the requirements of the packages of those dependencies
+  // 3. we check if our upgradable package appears in any of the other package dependencies
+  // 4. if not, we're clear. if it does, we have to check if the new version would violate the version constraints
+
+  // let outdated_by_pkg =
+  //   outdated
+  //   |> list.group(fn(entry) { entry.0 })
+  //   |> dict.to_list()
+
+  // list.each(outdated_by_pkg, fn(group) {
+  //   list.each(group.1, fn(entry) {
+  //     let #(pkg, dep, latest) = entry
+
+  //     let manifest = pkg.manifest_toml_path
+  //   })
+  // })
+  // io.println("")
+
   Nil
-}
-
-pub fn dep_name_to_string(name: DepName) {
-  let DepName(name) = name
-  name
-}
-
-pub fn dep_version_to_string(version: DepVersion) {
-  let DepVersion(version) = version
-  version
 }
 
 pub type Error {
@@ -336,24 +310,16 @@ pub type Package {
   Package(gleam_toml_path: String, manifest_toml_path: String)
 }
 
-pub type DepName {
-  DepName(String)
-}
-
-pub type DepVersion {
-  DepVersion(String)
-}
-
-pub type Dep {
-  Dep(name: DepName, version: DepVersion)
-}
-
 pub type DepMap =
-  dict.Dict(Package, List(Dep))
+  dict.Dict(Package, List(ManifestPackage))
 
 pub type InvDepMap =
-  dict.Dict(DepName, List(#(Package, DepVersion)))
+  dict.Dict(DependencyName, List(#(Package, DependencyVersion)))
 
 pub type VersionMismatch {
-  VersionMismatch(package_a: String, package_b: String, dep_name: DepName)
+  VersionMismatch(
+    package_a: String,
+    package_b: String,
+    dep_name: DependencyName,
+  )
 }

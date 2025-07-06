@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2025-06-22
+
+- Provide information wether you can upgrade a dependency, or if it will cause a
+  conflict, due to version constraints with other (traverse) dependencies.
+
 ## [1.0.6] - 2025-06-02
 
 - Bumped `tom` version.
