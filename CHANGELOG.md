@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2025-07-16
+- Bumped `gleam_httpc` to v5.
+
 ## [1.0.6] - 2025-06-02
 
 - Bumped `tom` version.
