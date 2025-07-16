@@ -111,7 +111,12 @@ pub fn run(path: String) -> Nil {
           let assert tom.InlineTable(table) = table
           let assert Ok(tom.String(name)) = dict.get(table, "name")
           let assert Ok(tom.String(version)) = dict.get(table, "version")
-          ManifestPackage(DependencyName(name), DependencyVersion(version))
+          let requirements = []
+          ManifestPackage(
+            DependencyName(name),
+            DependencyVersion(version),
+            requirements,
+          )
         })
 
       // we parse all of the deps in the gleam.toml

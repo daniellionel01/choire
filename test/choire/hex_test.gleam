@@ -11,7 +11,14 @@ pub fn fetch_constraints_test() {
       DependencyName("wayfinder"),
       DependencyVersion("1.2.1"),
     )
-    == Ok(dict.from_list([#("gleam_stdlib", ">= 0.44.0 and < 2.0.0")]))
+    == Ok(
+      dict.from_list([
+        #(
+          DependencyName("gleam_stdlib"),
+          DependencyVersion(">= 0.44.0 and < 2.0.0"),
+        ),
+      ]),
+    )
 }
 
 pub fn version_matches_constraint_test() {
@@ -27,7 +34,8 @@ pub fn match_fetched_constraints_test() {
       DependencyName("wayfinder"),
       DependencyVersion("1.2.1"),
     )
-  let assert [#("gleam_stdlib", constraints)] = dict.to_list(constraints)
+  let assert [#(DependencyName("gleam_stdlib"), DependencyVersion(constraints))] =
+    dict.to_list(constraints)
 
   assert hex.version_matches_constraint("1.0.0", constraints) == True
 }

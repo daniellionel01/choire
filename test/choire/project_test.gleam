@@ -52,58 +52,80 @@ pub fn gleam_project_parse_test() {
         project.ManifestPackage(
           DependencyName("argv"),
           DependencyVersion("1.0.2"),
+          [],
         ),
         project.ManifestPackage(
           DependencyName("filepath"),
           DependencyVersion("1.1.2"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_crypto"),
           DependencyVersion("1.5.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_erlang"),
           DependencyVersion("0.34.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_fetch"),
           DependencyVersion("1.3.0"),
+          [
+            DependencyName("gleam_http"),
+            DependencyName("gleam_javascript"),
+            DependencyName("gleam_stdlib"),
+          ],
         ),
         project.ManifestPackage(
           DependencyName("gleam_http"),
           DependencyVersion("4.0.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_httpc"),
           DependencyVersion("4.1.1"),
+          [
+            DependencyName("gleam_erlang"),
+            DependencyName("gleam_http"),
+            DependencyName("gleam_stdlib"),
+          ],
         ),
         project.ManifestPackage(
           DependencyName("gleam_javascript"),
           DependencyVersion("1.0.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_json"),
           DependencyVersion("3.0.1"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleam_stdlib"),
           DependencyVersion("0.60.0"),
+          [],
         ),
         project.ManifestPackage(
           DependencyName("gleam_time"),
           DependencyVersion("1.2.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("gleeunit"),
           DependencyVersion("1.4.0"),
+          [DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("simplifile"),
           DependencyVersion("2.2.1"),
+          [DependencyName("filepath"), DependencyName("gleam_stdlib")],
         ),
         project.ManifestPackage(
           DependencyName("tom"),
           DependencyVersion("2.0.0"),
+          [DependencyName("gleam_stdlib"), DependencyName("gleam_time")],
         ),
       ]),
     ))

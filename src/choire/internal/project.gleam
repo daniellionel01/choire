@@ -88,9 +88,16 @@ pub fn parse_gleam_project(
       let assert tom.InlineTable(table) = table
       let assert Ok(tom.String(name)) = dict.get(table, "name")
       let assert Ok(tom.String(version)) = dict.get(table, "version")
+      let assert Ok(tom.Array(requirements)) = dict.get(table, "requirements")
+      let requirements =
+        list.map(requirements, fn(requirement) {
+          let assert tom.String(requirement) = requirement
+          DependencyName(requirement)
+        })
+
       let name = DependencyName(name)
       let version = DependencyVersion(version)
-      ManifestPackage(name:, version:)
+      ManifestPackage(name:, version:, requirements:)
     })
 
   let manifest = Manifest(manifest_path, manifest_pkgs)
@@ -112,7 +119,39 @@ pub fn exact_dep_version(
   }
 }
 
-pub fn conflicting_version_dependencies() {
+/// Given a gleam project's manifest, we can cross reference dependency versions
+/// and figure out wether or not the constraints of a package that we might want to
+/// upgrade will conflict with any other package constraints.
+pub fn conflicting_constraints(
+  project: GleamProject,
+  dependency_name: DependencyName,
+  dependency_constraints: Constraints,
+) -> Constraints {
+  // go through project manifest packages
+  // filter packages that have the dependencies in the constraints as requirements
+  //   (but is not the dependency to be upgraded)
+  // fetch constraints of those packages
+  // validate that latest version will not conflict with any of those constraints
+
+  let package_constraints = dict.new()
+
+  dependency_constraints
+  |> dict.to_list()
+  |> list.filter(fn(constraint) {
+    let #(name, version) = constraint
+
+    let package =
+      list.find(project.manifest.packages, fn(pck) { pck.name == name })
+
+    case package {
+      Error(_) -> False
+      Ok(package) -> {
+        todo
+      }
+    }
+  })
+  |> dict.from_list()
+
   todo
 }
 
@@ -172,6 +211,9 @@ pub fn dependency_version_lookup(
   |> dict.from_list()
 }
 
+pub type Constraints =
+  dict.Dict(DependencyName, DependencyVersion)
+
 pub type DependencyVersionLookup =
   dict.Dict(DependencyName, List(#(GleamProject, DependencyVersion)))
 
@@ -196,7 +238,11 @@ pub type Dependency {
 }
 
 pub type ManifestPackage {
-  ManifestPackage(name: DependencyName, version: DependencyVersion)
+  ManifestPackage(
+    name: DependencyName,
+    version: DependencyVersion,
+    requirements: List(DependencyName),
+  )
 }
 
 pub type Manifest {
