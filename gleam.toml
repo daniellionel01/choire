@@ -1,5 +1,5 @@
 name = "choire"
-version = "1.0.7"
+version = "1.0.8"
 description = "🎶 Choire - gleam dependency tooling"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "daniellionel01", repo = "choire" }
@@ -8,7 +8,6 @@ repository = { type = "github", user = "daniellionel01", repo = "choire" }
 argv = ">= 1.0.2 and < 2.0.0"
 filepath = ">= 1.1.2 and < 2.0.0"
 gleam_erlang = ">= 0.34.0 and < 2.0.0"
-gleam_fetch = ">= 1.3.0 and < 2.0.0"
 gleam_http = ">= 4.0.0 and < 5.0.0"
 gleam_httpc = ">= 5.0.0 and < 6.0.0"
 gleam_json = ">= 3.0.1 and < 4.0.0"
