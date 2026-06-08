@@ -4,6 +4,13 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/choire/)
 ![erlang](https://img.shields.io/badge/target-erlang-a2003e)
 
+## Deprecation Notice
+
+Since gleam has introduced a built-in way to check for outdated dependencies (<https://gleam.run/news/the-happy-holidays-2025-release/>), you should rather use the `gleam deps outdated` command.
+
+What about checking for different versions of the same dependency across multiple gleam apps inside of a monorepository?
+I am quite confident any of you can make a script in <scripting language of your choice> or let an AI generate it.
+
 ## Introduction
 
 Choire works in a gleam monorepo or singular project. It does two things for you:
@@ -14,6 +21,8 @@ Importantly, this package does not perform any modifications or updates for you.
 This design is intentional as to not mess up your project in any way.
 
 ## Usage
+
+Don't forget to add this dependency as a `dev` dependency!
 
 ```sh
 $ gleam add choire@1 --dev
@@ -54,18 +63,3 @@ to reset and then continue fetching the package information.
 ## Acknowledgements
 
 - This package was heavily inspired by https://github.com/QuiiBz/sherif.
-
-## Future Work
-
-- [ ] spinner during step
-- [ ] "can i upgrade?" - attempts to find out if traverse dependency will conflict
-- [ ] attempt to fetch changelog of dependencies
-- [ ] support `--json` flag
-- [ ] support javascript target
-- [ ] support custom hex api key
-- [ ] cache latest dependency version for 24h
-  - [ ] `--force` to ignore cache
-- [ ] additional configuration
-  - [ ] log level
-  - [ ] include exclude patterns
-  - [ ] toggle dev deps
